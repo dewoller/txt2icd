@@ -1,6 +1,8 @@
 
 ################################################################################
 filename='MRCONSO.RRF'
+add='junk'
+
 get_umls_fields = function( filename, add='junk' )  {
 
   mrfiles_names=c('file','desc','fields')
