@@ -4,11 +4,17 @@ source('_drake.R')
 file(paste0(MESHDIR,filename))
 
 MESHDIR='data/C1963138/'
+
+file('data/META/MRCONSO.RRF')
+
 MESHDIR='data/META/'
-mrconso = read_umls_file('MRCONSO.RRF')  
-mrhier = read_umls_file('MRHIER.RRF') 
-mrrel = read_umls_file('MRREL.RRF') 
-mrsat = read_umls_file('MRSAT.RRF') 
+target_sab='MSH'
+mrconso = read_umls_file('MRCONSO.RRF')  %>% filter(sab==target_sab)
+mrhier = read_umls_file('MRHIER.RRF')    %>% filter(sab==target_sab)
+mrrel = read_umls_file('MRREL.RRF')   %>% filter(sab==target_sab)
+mrsat = read_umls_file('MRSAT.RRF')   %>% filter(sab==target_sab)
+
+
 
 
 mrconso_mth = mrconso  %>% filter(sab=='MTH')
@@ -79,37 +85,38 @@ mrconso %>%
 cui=paste0('cui', 1:9)
 cui_score=paste0('cui_score', 1:9)
 
-cui=paste0('cui', 1:9)
-cui_score=paste0('cui_score', 1:9)
-read_tsv('data/phess_cat.txt', col_names=c('lineno','line','chunk',c(rbind(cui, cui_score))) ) %>%
-  select(1:5) %>% 
-  rename(cui = cui1) %>%
-  { . } -> df_phess
 
-cui=paste0('cui', 1:9)
-cui_score=paste0('cui_score', 1:9)
-read_tsv('data/vdi_cat.txt', col_names=c('lineno','line','chunk',c(rbind(cui, cui_score))) ) %>%
-  select(1:5) %>% 
-  rename(cui = cui1) %>%
-  { . } -> df_vdi
 
 df_vdi %>%
   bind_rows(df_phess) %>%
-  distinct(cui) %>%
-  inner_join( mrconso)  %>%
-  distinct(cui, sab) %>%
-  count(sab, sort=TRUE)
-
-df_phess %>%
   distinct(cui) %>%
   inner_join( mrhier)  %>%
   distinct(cui, sab) %>%
   count(sab, sort=TRUE)
 
+df_vdi %>%
+  bind_rows(df_phess) %>%
+  distinct(cui) %>%
+  inner_join( mrhier)  %>%
+  as.Node( pathName='ptr',
+  pathDelimiter='.') %>% 
+  { . } -> tree
 
 
-  pivot_longer( starts_with('cui'))
-  distinct( chunk) %>%
-  count()
+tree %>% head(10)
 
-install.packages('data.tree')
+SetGraphStyle(tree, rankdir = "LR")
+plot(tree)
+
+vignette('applications', package = "data.tree")
+
+
+devtools::install_github("timelyportfolio/listviewer")
+
+
+tree %>%
+  ToListSimple() %>%
+  jsonedit()
+
+
+as.Node
